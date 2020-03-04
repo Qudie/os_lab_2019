@@ -1,15 +1,19 @@
 #include "revert_string.h"
 #include <string.h>
+void swap_revert_string(char *left, char *right)
+{
+char tmp = *left;
+*left = *right;
+*right = tmp;
+}
+
 void RevertString(char *str)
 {
     int b=strlen(str);
-    char a[b];
+    int a= b/2;
     char a1[b];
     int i;
-    for(i=0;i<b;i++)
-    {a1[i]=str[i];}
-    for(i=0;i<b;i++)
-    {a[i]=a1[b-i-1];}
-    str = a;
+    for (i = 0; i < a; i++)
+    swap_revert_string(&str[i], &str[b - i - 1]);
 }
 
