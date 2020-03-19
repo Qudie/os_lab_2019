@@ -1,0 +1,6 @@
+Задание 1:
+gcc sequential_min_max.c find_min_max.c utils.c -o seq
+sh-4.2$ ./seq 1 4
+min: 846930886
+max: 1804289383
+Задание 2:
