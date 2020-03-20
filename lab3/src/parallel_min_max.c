@@ -83,8 +83,9 @@ int main(int argc, char **argv) {
            argv[0]);
     return 1;
   }
-
+    
   int *array = malloc(sizeof(int) * array_size);
+  printf("params: %d %d %d\n", seed, array_size, pnum);
   GenerateArray(array, array_size, seed);
   int active_child_processes = 0;
 
@@ -97,14 +98,17 @@ int main(int argc, char **argv) {
       exit(0);
   }
 
+    float cut = (float)array_size / pnum;
   for (i = 0; i < pnum; i++) {
     pid_t child_pid = fork();
     if (child_pid >= 0) {
-      // successful fork
       active_child_processes += 1;
       if (child_pid == 0) {
-        printf("Succesfull fork: %d %d\n ", i, child_pid);
-        struct MinMax min_max1 = GetMinMax(array, 0, array_size);
+        printf("Succesfull fork: %d %d\n ", i, getpid());
+        int arr_start = cut * (float)i;
+        int arr_end = arr_start + cut;
+        
+        struct MinMax min_max1 = GetMinMax(array, arr_start, arr_end);
 
         if (with_files) {
              FILE *fi;
@@ -119,11 +123,8 @@ int main(int argc, char **argv) {
             fclose(fi);
           
         } else {
-         char buffer[256];
-            sprintf(buffer,"%d",min_max1.min);
-            write(file_pipe[1],buffer,strlen(buffer));
-            sprintf(buffer,"%d",min_max1.max);
-            write(file_pipe[1],buffer,strlen(buffer));
+            write(file_pipe[1], &min_max1.min, sizeof(int));
+            write(file_pipe[1], &min_max1.max, sizeof(int));
         }
         return 0;
       }
@@ -156,17 +157,9 @@ int main(int argc, char **argv) {
         min = atoi(buf);
         fscanf(fp,"%s",buf);
         max = atoi(buf);
-        printf("files: \n");
     } else {
-    char buf[256];
-        int n;
-        read(file_pipe[0],buf,9);
-        n=atoi(buf);
-        min=n;
-        read(file_pipe[0],buf,10);
-        n=atoi(buf);
-        max=n;
-        printf("pipe: \n");
+        read(file_pipe[0], &min, sizeof(int));
+        read(file_pipe[0], &max, sizeof(int));
     }
 
     if (min < min_max.min) min_max.min = min;
