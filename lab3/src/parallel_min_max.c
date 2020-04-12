@@ -113,6 +113,7 @@ int timeout =0;
     if (child_pid >= 0) {
       active_child_processes += 1;
       if (child_pid == 0) {
+          sleep (10);
         printf("Succesfull fork: %d %d\n ", i, getpid());
         int arr_start = cut * (float)i;
         int arr_end = arr_start + cut;
@@ -147,6 +148,7 @@ int timeout =0;
 {
     signal (14,al);
     alarm(timeout);
+    printf("Timeout is on %d \n", timeout);
 }
   while (active_child_processes > 0) {
       wait(0);
