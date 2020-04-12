@@ -14,13 +14,17 @@
 
 #include "find_min_max.h"
 #include "utils.h"
-
+#include <signal.h>
+void al()
+{
+    kill(0,SIGKILL);
+}
 int main(int argc, char **argv) {
   int seed = -1;
   int array_size = -1;
   int pnum = -1;
   bool with_files = false;
-
+int timeout =0;
   while (true) {
     int current_optind = optind ? optind : 1;
 
@@ -28,6 +32,7 @@ int main(int argc, char **argv) {
                                       {"array_size", required_argument, 0, 0},
                                       {"pnum", required_argument, 0, 0},
                                       {"by_files", no_argument, 0, 'f'},
+                                      {"timeout", required_argument, 0,0},
                                       {0, 0, 0, 0}};
 
     int option_index = 0;
@@ -56,7 +61,11 @@ int main(int argc, char **argv) {
           case 3:
             with_files = true;
             break;
-
+        case 4: 
+        timeout=atoi(optarg);
+            if(timeout<=0)
+                exit(0);
+            break;
           defalut:
             printf("Index %d is out of options\n", option_index);
         }
@@ -72,7 +81,7 @@ int main(int argc, char **argv) {
         printf("getopt returned character code 0%o?\n", c);
     }
   }
-
+ 
   if (optind < argc) {
     printf("Has at least one no option argument\n");
     return 1;
@@ -134,7 +143,11 @@ int main(int argc, char **argv) {
       return 1;
     }
   }
-
+    if(timeout>0)
+{
+    signal (14,al);
+    alarm(timeout);
+}
   while (active_child_processes > 0) {
       wait(0);
     active_child_processes -= 1;
