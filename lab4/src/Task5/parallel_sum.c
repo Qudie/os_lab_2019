@@ -2,7 +2,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-
 #include <pthread.h>
 #include <limits.h>
 #include <stdbool.h>
@@ -14,24 +13,12 @@
 #include <getopt.h>
 #include <signal.h>
 #include "utils.h"
-struct SumArgs {
-  int *array;
-  int begin;
-  int end;
-};
-
-int Sum(const struct SumArgs *args) {
-  int sum = 0;
-  for(int i = args->begin;i< args->end;i++)
-  {
-      sum+=args->array[i];
-  }
-  return sum;
-}
+#include "sum.h"
 
 void *ThreadSum(void *args)
 {
   struct SumArgs *sum_args = (struct SumArgs *)args;
+  printf("Thread: [begin=%d, end=%d]\n", sum_args->begin, sum_args->end);
   return (void *)(size_t)Sum(sum_args);
 }
 
@@ -91,9 +78,16 @@ int current_optind = optind ? optind : 1;
            argv[0]);
     return 1;
   }
+  int a= array_size/2;
+  if(threads_num >a)
+  {
+      printf("Too much threads, they will adopted to half array size \n");
+      threads_num = a;
+      
+  }
   struct timeval begin_time;
-gettimeofday(&begin_time,NULL);
-  float c = (float)array_size/threads_num;
+  gettimeofday(&begin_time,NULL);
+  float c = array_size/(float)threads_num;
   int *array = malloc(sizeof(int) * array_size);
   GenerateArray(array, array_size,seed);
   pthread_t threads[threads_num];
@@ -103,7 +97,7 @@ gettimeofday(&begin_time,NULL);
     args[i].begin = round(i*c);
     args[i].end =round((i+1)*c);
 
-    if (pthread_create(&threads[i], NULL, ThreadSum, (void *)&args)) {
+    if (pthread_create(&threads[i], NULL, ThreadSum, (void *)&args[i])) {
       printf("Error: pthread_create failed!\n");
       return 1;
     }
