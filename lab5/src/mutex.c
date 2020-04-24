@@ -14,7 +14,12 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <sys/time.h>
+#include <sys/sem.h>
+#include <sys/ipc.h>
+#include <semaphore.h> 
+#include <unistd.h>
+sem_t mutex;
 void do_one_thing(int *);
 void do_another_thing(int *);
 void do_wrap_up(int);
@@ -24,7 +29,7 @@ pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
 
 int main() {
   pthread_t thread1, thread2;
-
+  sem_init(&mutex, 0, 1); 
   if (pthread_create(&thread1, NULL, (void *)do_another_thing,
 			  (void *)&common) != 0) {
     perror("pthread_create");
@@ -37,6 +42,7 @@ int main() {
     exit(1);
   }
 
+
   if (pthread_join(thread1, NULL) != 0) {
     perror("pthread_join");
     exit(1);
@@ -46,6 +52,7 @@ int main() {
     perror("pthread_join");
     exit(1);
   }
+  sem_destroy(&mutex); 
 
   do_wrap_up(common);
 
@@ -53,11 +60,12 @@ int main() {
 }
 
 void do_one_thing(int *pnum_times) {
+
   int i, j, x;
   unsigned long k;
   int work;
   for (i = 0; i < 50; i++) {
-    pthread_mutex_lock(&mut);
+     sem_wait(&mutex);
     printf("doing one thing\n");
     work = *pnum_times;
     printf("counter = %d\n", work);
@@ -65,8 +73,10 @@ void do_one_thing(int *pnum_times) {
     for (k = 0; k < 500000; k++)
       ;                 /* long cycle */
     *pnum_times = work; /* write back */
-	 pthread_mutex_unlock(&mut);
+	 sem_post(&mutex);
+     
   }
+  
 }
 
 void do_another_thing(int *pnum_times) {
@@ -74,7 +84,7 @@ void do_another_thing(int *pnum_times) {
   unsigned long k;
   int work;
   for (i = 0; i < 50; i++) {
-     pthread_mutex_lock(&mut);
+     sem_wait(&mutex);
     printf("doing another thing\n");
     work = *pnum_times;
     printf("counter = %d\n", work);
@@ -82,8 +92,10 @@ void do_another_thing(int *pnum_times) {
     for (k = 0; k < 500000; k++)
       ;                 /* long cycle */
     *pnum_times = work; /* write back */
-     pthread_mutex_unlock(&mut);
+     sem_post(&mutex);
   }
+ 
+
 }
 
 void do_wrap_up(int counter) {
