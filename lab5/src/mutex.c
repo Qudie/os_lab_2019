@@ -25,13 +25,13 @@ pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
 int main() {
   pthread_t thread1, thread2;
 
-  if (pthread_create(&thread1, NULL, (void *)do_one_thing,
+  if (pthread_create(&thread1, NULL, (void *)do_another_thing,
 			  (void *)&common) != 0) {
     perror("pthread_create");
     exit(1);
   }
 
-  if (pthread_create(&thread2, NULL, (void *)do_another_thing,
+  if (pthread_create(&thread2, NULL, (void *)do_one_thing,
                      (void *)&common) != 0) {
     perror("pthread_create");
     exit(1);
@@ -57,7 +57,7 @@ void do_one_thing(int *pnum_times) {
   unsigned long k;
   int work;
   for (i = 0; i < 50; i++) {
-    // pthread_mutex_lock(&mut);
+    pthread_mutex_lock(&mut);
     printf("doing one thing\n");
     work = *pnum_times;
     printf("counter = %d\n", work);
@@ -65,7 +65,7 @@ void do_one_thing(int *pnum_times) {
     for (k = 0; k < 500000; k++)
       ;                 /* long cycle */
     *pnum_times = work; /* write back */
-	// pthread_mutex_unlock(&mut);
+	 pthread_mutex_unlock(&mut);
   }
 }
 
@@ -74,7 +74,7 @@ void do_another_thing(int *pnum_times) {
   unsigned long k;
   int work;
   for (i = 0; i < 50; i++) {
-    // pthread_mutex_lock(&mut);
+     pthread_mutex_lock(&mut);
     printf("doing another thing\n");
     work = *pnum_times;
     printf("counter = %d\n", work);
@@ -82,7 +82,7 @@ void do_another_thing(int *pnum_times) {
     for (k = 0; k < 500000; k++)
       ;                 /* long cycle */
     *pnum_times = work; /* write back */
-    // pthread_mutex_unlock(&mut);
+     pthread_mutex_unlock(&mut);
   }
 }
 
